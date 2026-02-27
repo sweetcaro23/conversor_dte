@@ -1,28 +1,26 @@
-# Imagen con PHP-FPM
-FROM php:8.2-fpm-alpine
+FROM php:8.4-fpm-alpine
 
-# Dependencias del sistema
-RUN apk add --no-cache nginx bash curl git unzip icu-dev oniguruma-dev libzip-dev \
-    && docker-php-ext-install intl mbstring zip opcache pdo pdo_mysql
+RUN apk add --no-cache \
+  nginx bash curl git unzip \
+  icu-dev oniguruma-dev libzip-dev \
+  libpng-dev libjpeg-turbo-dev freetype-dev \
+  libxml2-dev
 
-# Composer
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-install -j$(nproc) \
+     intl mbstring zip opcache pdo pdo_mysql bcmath gd xml
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
-
-# Copiamos el 
 COPY . .
 
-# Instalar dependencias PHP
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Config Nginx
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
-# Permisos para Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Script de arranque
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
