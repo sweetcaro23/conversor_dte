@@ -10,7 +10,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copiamos el proyecto
+# Copiamos el 
 COPY . .
 
 # Instalar dependencias PHP
